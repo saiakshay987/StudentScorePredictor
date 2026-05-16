@@ -9,7 +9,7 @@ from sklearn.metrics import r2_score
 from sklearn.neighbors import KNeighborsRegressor
 from sklearn.tree import DecisionTreeRegressor
 from xgboost import XGBRegressor
-
+from sklearn.model_selection import GridSearchCV
 from src.exception import CustomException
 from src.logger import logging
 
@@ -39,11 +39,40 @@ class ModelTrainer:
                 "XGBRegressor": XGBRegressor(),
                 "CatBoosting Regressor": CatBoostRegressor(verbose=False)
             }
+            params = {
+                "Decision Tree": {
+                    "max_depth": [3, 5, 7, 10]
+                },
+                "Random Forest": {
+                    "n_estimators": [50, 100, 200],
+                },
+                "Gradient Boosting": {
+                    "learning_rate": [0.01, 0.1, 0.2],
+                    "n_estimators": [50, 100, 200]
+                },
+                "K-Neighbors Regressor": {
+                    "n_neighbors": [3, 5, 7, 10]
+                },
+                "XGBRegressor": {
+                    "learning_rate": [0.01, 0.1, 0.2],
+                    "n_estimators": [50, 100, 200]
+                },
+                "CatBoosting Regressor": {
+                    "learning_rate": [0.01, 0.1, 0.2],
+                    "n_estimators": [50, 100, 200]
+                },
+                "Linear Regression": {
+                }
+            }
+
 
             model_report = {}
 
             for i in range(len(models)):
                 model = list(models.values())[i]
+                gs = GridSearchCV(estimator=model, param_grid=params[list(models.keys())[i]], cv=5).fit(X_train, y_train)
+                #model.fit(X_train, y_train)
+                model.set_params(**gs.best_params_)
                 model.fit(X_train, y_train)
 
                 y_train_pred = model.predict(X_train)
